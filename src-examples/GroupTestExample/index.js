@@ -31,9 +31,18 @@ const orderCol = {
   headerName: "序号",
   pinned: true,
   width: 80,
-  editable: false,
+  editable: true,
   cellRenderer: "orderCellRenderer",
   rowDrag: true,
+  valueGetter: () => {
+    return { a: { a1: 1, a2: 2 }, b: { b1: 1, b2: 2 } };
+  },
+  valueSetter: (params) => {
+    console.log("value setter params", params);
+    params.data.order = { a: { a1: "===============", a2: 2 } };
+    return false;
+    // return true;
+  },
 };
 
 const prFunctionCol = {
@@ -82,7 +91,14 @@ class GroupTestExample extends Component {
   };
 
   handleCellMouseDown = (params) => {
+    // console.log("params", params);
+  };
+
+  processDataFromClipboard = (params) => {
     console.log("params", params);
+    const { data } = params;
+    console.log("data", data);
+    return [[1, 2]];
   };
 
   transformColumns = (columns) => {
@@ -213,6 +229,7 @@ class GroupTestExample extends Component {
             // checkbox: true,
             suppressCount: true,
           }}
+          // processDataFromClipboard={this.processDataFromClipboard}
           enableCellChangeFlash
           suppressDragLeaveHidesColumns
           animateRows

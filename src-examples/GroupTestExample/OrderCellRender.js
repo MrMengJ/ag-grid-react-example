@@ -8,9 +8,10 @@ const Wrapper = styled.div`
 
 class OrderCellRender extends Component {
   render() {
-    const { node } = this.props;
+    const { node, value } = this.props;
+    console.log("props", this.props);
     const rowIndex = get(node, "rowIndex", null);
-    return <Wrapper>{rowIndex}</Wrapper>;
+    return <Wrapper>{value.a.a1}</Wrapper>;
   }
 }
 
