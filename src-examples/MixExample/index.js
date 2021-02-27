@@ -12,8 +12,8 @@ import {
   AG_GRID_LOCALE_ZH,
   FLAT_COLUMNS,
   ROW_DATA,
-} from ".//constants";
-import { getColumns, getRowData } from ".//helper";
+} from "./constants";
+import { getColumns, getRowData } from "./helper";
 import PrFunctionGroupCellRender from "../GroupTestExample/PrFunctionGroupCellRender";
 
 const Wrapper = styled.div`

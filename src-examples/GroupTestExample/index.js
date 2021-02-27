@@ -1,6 +1,6 @@
 import React, { Component } from "react";
 import styled from "styled-components";
-import { includes, map, sortBy, get } from "lodash";
+import { includes, map, sortBy, get, has } from "lodash";
 import { AgGridReact } from "@ag-grid-community/react";
 import { AllCommunityModules } from "@ag-grid-community/all-modules";
 import { AllModules } from "@ag-grid-enterprise/all-modules";
@@ -15,11 +15,26 @@ import {
 } from "../MixExample/constants";
 import { getColumns, getRowData } from "../MixExample/helper";
 import PrFunctionGroupCellRender from "./PrFunctionGroupCellRender";
+import OrderCellRender from "./OrderCellRender";
 
 const Wrapper = styled.div`
   width: 100%;
   height: 400px;
 `;
+
+const orderCol = {
+  parentId: "0",
+  id: "order",
+  field: "order",
+  colId: "order",
+  name: "序号",
+  headerName: "序号",
+  pinned: true,
+  width: 80,
+  editable: false,
+  cellRenderer: "orderCellRenderer",
+  rowDrag: true,
+};
 
 const prFunctionCol = {
   parentId: "0",
@@ -27,13 +42,19 @@ const prFunctionCol = {
   field: "prFunction",
   colId: "prFunction",
   name: "所属职能",
+  hide: true,
 };
 
 class GroupTestExample extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      columnDefs: this.transformColumns([prFunctionCol, ...FLAT_COLUMNS]),
+      mouseHoverRowIndex: null,
+      columnDefs: this.transformColumns([
+        orderCol,
+        prFunctionCol,
+        ...sortBy(FLAT_COLUMNS, "sortId"),
+      ]),
       rowData: getRowData(ROW_DATA),
     };
   }
@@ -44,6 +65,25 @@ class GroupTestExample extends Component {
   }
 
   handleColWidthChanged = () => {};
+
+  handleCellMouseOver = (params) => {
+    const { rowIndex } = params;
+    if (this.state.mouseHoverRowIndex !== rowIndex) {
+      this.setState({
+        mouseHoverRowIndex: rowIndex,
+      });
+    }
+  };
+
+  handleCellMouseOut = () => {
+    this.setState({
+      mouseHoverRowIndex: null,
+    });
+  };
+
+  handleCellMouseDown = (params) => {
+    console.log("params", params);
+  };
 
   transformColumns = (columns) => {
     const getColId = (name, id) => {
@@ -60,8 +100,12 @@ class GroupTestExample extends Component {
       return width >= 100 ? width : 100;
     };
 
-    const getPinned = (name) => {
+    const getPinned = (data) => {
+      if (has(data, "pinned")) {
+        return data.pinned;
+      }
       const leftPinnedNames = ["组织", "编号", "工作事项"];
+      const { name } = data;
       if (includes(leftPinnedNames, name)) {
         return "left";
       }
@@ -80,53 +124,52 @@ class GroupTestExample extends Component {
       }
     };
 
-    const getRowDrag = (name) => {
-      const rowDragNames = ["组织"];
-      return includes(rowDragNames, name);
+    const getEditable = (data) => {
+      return has(data, "editable") ? data.editable : true;
     };
 
-    // console.log("columns", columns);
+    const getCellRendererParams = (data) => {};
 
-    return getColumns(
-      sortBy(
-        map(columns, (item) => {
-          const { id, name, parentId, sortId, width } = item;
-          return {
-            id,
-            name,
-            parentId,
-            sortId,
-            headerName: name,
-            headerTooltip: name,
-            headerClass: "my-header-class",
-            rowDrag: getRowDrag(name),
-            editable: true,
-            width: getWidth(width),
-            colId: getColId(name, id),
-            field: getColId(name, id),
-            pinned: getPinned(name),
-            rowGroup: getRowGroup(id),
-            keyCreator: getKeyCreator(id),
-            // flex: getFlex(name),
-            // filter:"agTextColumnFilter",
-            // filter:"agNumberColumnFilter",
-            // filter:"agDateColumnFilter",
-            // filter:"agSetColumnFilter",
-            filterParams: {
-              buttons: ["reset", "apply"],
-              excelMode: "windows",
-            },
-          };
-        }),
-        "sortId"
-      )
+    const transformedColumns = getColumns(
+      map(columns, (item, index) => {
+        const { id, name, parentId, sortId, width } = item;
+        return {
+          ...item,
+          id,
+          name,
+          parentId,
+          sortId,
+          headerName: name,
+          headerTooltip: name,
+          headerClass: "my-header-class",
+          editable: getEditable(item),
+          width: getWidth(width),
+          colId: getColId(name, id),
+          field: getColId(name, id),
+          pinned: getPinned(item),
+          rowGroup: getRowGroup(id),
+          keyCreator: getKeyCreator(id),
+          cellRendererParams: getCellRendererParams(item),
+          // flex: getFlex(name),
+          // filter:"agTextColumnFilter",
+          // filter:"agNumberColumnFilter",
+          // filter:"agDateColumnFilter",
+          // filter:"agSetColumnFilter",
+          filterParams: {
+            buttons: ["reset", "apply"],
+            excelMode: "windows",
+          },
+        };
+      })
     );
+
+    return [...transformedColumns];
   };
 
   render() {
     const { columnDefs, rowData } = this.state;
-    console.log("columnDefs", columnDefs);
-    console.log("rowData", rowData);
+    // console.log("columnDefs", columnDefs);
+    // console.log("rowData", rowData);
     return (
       <Wrapper className="ag-theme-alpine">
         <AgGridReact
@@ -134,7 +177,7 @@ class GroupTestExample extends Component {
           // headerHeight={40}
           // groupHeaderHeight={80}
           // rowHeight={100}
-          rowSelection={"multiple"}
+          // rowSelection={"multiple"}
           enableRangeSelection
           enableRangeHandle
           // fillHandleDirection={"x"}
@@ -162,10 +205,11 @@ class GroupTestExample extends Component {
             // singleClickEdit: true,
           }}
           frameworkComponents={{
-            prFunctionGroupCellRender: PrFunctionGroupCellRender,
+            prFunctionGroupCellRenderer: PrFunctionGroupCellRender,
+            orderCellRenderer: OrderCellRender,
           }}
           groupRowRendererParams={{
-            innerRenderer: "prFunctionGroupCellRender",
+            innerRenderer: "prFunctionGroupCellRenderer",
             // checkbox: true,
             suppressCount: true,
           }}
@@ -179,6 +223,9 @@ class GroupTestExample extends Component {
           undoRedoCellEditing
           groupUseEntireRow={true} // group row is full width
           groupDefaultExpanded={1} // 0 for none, 1 for first level only, etc. Set to -1 to expand everything.
+          onCellMouseOver={this.handleCellMouseOver}
+          onCellMouseOut={this.handleCellMouseOut}
+          onCellMouseDown={this.handleCellMouseDown}
         />
       </Wrapper>
     );

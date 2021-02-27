@@ -52,12 +52,9 @@ export const getRowData = (rowData) => {
       return value ? value : "---";
     });
     const rootAncestor = getRootAncestor(rowData, item);
-    console.log("rootAncestor", rootAncestor);
-    console.log("item", item);
     const prFunction = rootAncestor
       ? findChildPrFunctionById(rootAncestor.parentId)
       : findChildPrFunctionById(item.parentId);
-    console.log("prFunction", prFunction);
     return { ...others, ...otherCells, prFunction };
   });
 };
