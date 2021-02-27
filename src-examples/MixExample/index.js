@@ -1,6 +1,6 @@
 import React, { Component } from "react";
 import styled from "styled-components";
-import { includes, map, sortBy, isEmpty } from "lodash";
+import { includes, map, sortBy, isEmpty, get } from "lodash";
 import { AgGridReact } from "@ag-grid-community/react";
 import { AllCommunityModules } from "@ag-grid-community/all-modules";
 import { AllModules } from "@ag-grid-enterprise/all-modules";
@@ -8,25 +8,38 @@ import { AllModules } from "@ag-grid-enterprise/all-modules";
 import "@ag-grid-community/all-modules/dist/styles/ag-grid.css";
 import "@ag-grid-community/all-modules/dist/styles/ag-theme-alpine.css";
 
-import { AG_GRID_LOCALE_ZH, FLAT_COLUMNS, ROW_DATA } from "./constants";
-import { getColumns, getRowData } from "./helper";
+import {
+  AG_GRID_LOCALE_ZH,
+  FLAT_COLUMNS,
+  ROW_DATA,
+} from ".//constants";
+import { getColumns, getRowData } from ".//helper";
+import PrFunctionGroupCellRender from "../GroupTestExample/PrFunctionGroupCellRender";
 
 const Wrapper = styled.div`
   width: 100%;
   height: 400px;
 `;
 
-class PrListTestExample extends Component {
+const prFunctionCol = {
+  parentId: "0",
+  id: "prFunction",
+  field: "prFunction",
+  colId: "prFunction",
+  name: "所属职能",
+};
+
+class MixExample extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      columnDefs: this.transformColumns(FLAT_COLUMNS),
+      columnDefs: this.transformColumns([prFunctionCol, ...FLAT_COLUMNS]),
       rowData: getRowData(ROW_DATA),
     };
   }
 
   handleGridReady(params) {
-    console.log("params", params);
+    // console.log("params", params);
     this.gridApi = params.api;
     this.columnApi = params.columnApi;
     // console.log("getColumnState", this.columnApi.getColumnState());
@@ -87,7 +100,25 @@ class PrListTestExample extends Component {
       return includes(lockPositionNames, name);
     };
 
-    console.log("columns", columns);
+    const getRowGroup = (id) => {
+      const rowGroupIds = ["prFunction"];
+      return includes(rowGroupIds, id);
+    };
+
+    const getKeyCreator = (id) => {
+      if (id === "prFunction") {
+        return (params) => {
+          return get(params, "value.name");
+        };
+      }
+    };
+
+    const getRowDrag = (name) => {
+      const rowDragNames = ["组织"];
+      return includes(rowDragNames, name);
+    };
+
+    // console.log("columns", columns);
 
     return getColumns(
       sortBy(
@@ -105,7 +136,7 @@ class PrListTestExample extends Component {
             // lockPosition: getLockPosition(name),
             // lockVisible: true,
             // checkboxSelection: true,
-            rowDrag: true,
+            rowDrag: getRowDrag(name),
             // dndSource:true,
             // rowGroup: true,
             // unSortIcon:true,
@@ -114,6 +145,9 @@ class PrListTestExample extends Component {
             colId: getColId(name, id),
             field: getColId(name, id),
             pinned: getPinned(name),
+            // rowGroup: true,
+            rowGroup: getRowGroup(id),
+            keyCreator: getKeyCreator(id),
             // flex: getFlex(name),
             // filter:"agTextColumnFilter",
             // filter:"agNumberColumnFilter",
@@ -121,7 +155,7 @@ class PrListTestExample extends Component {
             // filter:"agSetColumnFilter",
             filterParams: {
               buttons: ["reset", "apply"],
-              excelMode: 'windows',
+              excelMode: "windows",
             },
           };
         }),
@@ -169,21 +203,44 @@ class PrListTestExample extends Component {
             // autoHeight:true,
             // singleClickEdit: true,
           }}
+          autoGroupColumnDef={{
+            headerName: "所属职能",
+            // field: "number",
+            pinned: true,
+            // hide: true,
+            cellRendererParams: {
+              // checkbox: true,
+            },
+          }}
+          frameworkComponents={{
+            prFunctionGroupCellRender: PrFunctionGroupCellRender,
+          }}
+          // groupRowRenderer={PrFunctionGroupCellRender}
+          groupRowRendererParams={{
+            innerRenderer: "prFunctionGroupCellRender",
+            // checkbox: true,
+            pinned: true,
+            suppressCount: true,
+          }}
           enableCellChangeFlash
           suppressDragLeaveHidesColumns
           animateRows
           rowDragManaged
-          sideBar
+          // sideBar
           alwaysShowBothConditions
           // suppressMovableColumns
           // applyColumnDefOrder
           // undoRedoCellEditing
+          showOpenedGroup={true}
+          groupUseEntireRow={true} // group row is full width
+          groupDefaultExpanded={1} // 0 for none, 1 for first level only, etc. Set to -1 to expand everything.
+          groupSuppressAutoColumn={true} // suppress auto column
         />
       </Wrapper>
     );
   }
 }
 
-PrListTestExample.propTypes = {};
+MixExample.propTypes = {};
 
-export default PrListTestExample;
+export default MixExample;

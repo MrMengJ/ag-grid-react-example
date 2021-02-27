@@ -5,7 +5,8 @@ import NavItem from "./NavItem";
 import RichGridDeclarativeExample from "./richGridDeclarativeExample/RichGridDeclarativeExample";
 import SimpleReduxDynamicExample from "./simpleReduxDynamicComponentExample/SimpleReduxExample";
 import SimpleReduxHookExample from "./simpleReduxHooksExample/SimpleReduxHookExample";
-import PrListTestExample from "./PrListTestExample";
+import MixExample from "./MixExample";
+import GroupTestExample from "./GroupTestExample";
 
 const SideBar = () => (
   <div style={{ float: "left", width: "20%", marginRight: 25 }}>
@@ -19,7 +20,8 @@ const SideBar = () => (
       <NavItem to="/simple-redux-hook">
         Simple React Hook Component Example
       </NavItem>
-      <NavItem to="/prList-test">PrList Test Component Example</NavItem>
+      <NavItem to="/mix-test">Mix Test Example</NavItem>
+      <NavItem to="/group-test">Group Test Example</NavItem>
     </ul>
   </div>
 );
@@ -31,7 +33,7 @@ class App extends Component {
         <SideBar />
         <div style={{ float: "left", width: "75%" }}>
           <Switch>
-            <Redirect from="/" exact to="/prList-test" />
+            <Redirect from="/" exact to="/group-test" />
             <Route
               exact
               path="/rich-grid-declarative"
@@ -47,7 +49,8 @@ class App extends Component {
               path="/simple-redux-hook"
               component={SimpleReduxHookExample}
             />
-            <Route exact path="/prList-test" component={PrListTestExample} />
+            <Route exact path="/mix-test" component={MixExample} />
+            <Route exact path="/group-test" component={GroupTestExample} />
           </Switch>
         </div>
       </div>
